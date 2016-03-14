@@ -34,7 +34,6 @@ class mainWindow(Qt.QMainWindow):
         self.setWindowTitle('PyneSweeper')
         self.show()
 
-        #dirty branch
 #TODO: Add timer!!
 #TODO: add mine counter
 class boardWidget(Qt.QWidget):
@@ -65,7 +64,7 @@ class boardWidget(Qt.QWidget):
         self.gameState = 0
 
     def loadImages(self):
-        path = 'bin/'
+        path = 'data/'
         self.tileImg = Qt.QImage()
         self.tileImg.load(path+'tile.png', 'PNG')
         self.emptyTileImg = Qt.QImage()

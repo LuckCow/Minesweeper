@@ -34,7 +34,7 @@ class mainWindow(Qt.QMainWindow):
         self.setWindowTitle('PyneSweeper')
         self.show()
 
-        
+        #dirty branch
 #TODO: Add timer!!
 #TODO: add mine counter
 class boardWidget(Qt.QWidget):

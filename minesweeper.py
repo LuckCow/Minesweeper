@@ -37,7 +37,7 @@ Flag that are destroyed by 0 recursive clear are left in count and block square 
     --- Caused by flags remaining invisibly despite lack of cover
 """
 from PyQt4 import Qt
-import sys, random, time
+import sys, random, time, json, datetime
 
 
 
@@ -276,7 +276,6 @@ class boardWidget(Qt.QWidget):
 
     def cordTile(self, row, col):
         if self.cover[row][col]:
-            print('No cover, no cord')
             return
         if self.getAdjacentFlags(row, col) == int(self.board[row][col]):
             for i in range(row - 1, row + 2):
@@ -363,12 +362,41 @@ class boardWidget(Qt.QWidget):
         self.endGUItimer.activate(Qt.QAction.Trigger)
         self.update()
         self.showDialog()
-        #TODO: show highscores
-        #TODO: ask for replay
+
 
     def showDialog(self):
-        wnBox = Qt.QMessageBox(Qt.QMessageBox.NoIcon, 'You Win!', 'Your time was: '
-                               +str(self.totalTime), Qt.QMessageBox.Ok)
+        time = round(self.totalTime, 2)
+        with open('highscores.json') as score_file:
+            scores = json.load(score_file)
+
+        newEntry = {"date":str(datetime.date.today()), "score":time}
+        newHighscore = False
+        for i, entry in enumerate(scores['highscores']):
+            if self.totalTime < entry['score']:
+                scores['highscores'].insert(i, newEntry)
+                newHighscore = True
+                break
+
+        if len(scores['highscores']) > 5:
+            scores['highscores'].pop()
+        elif scores['highscores'][-1]['score'] < self.totalTime:
+            scores['highscores'].append(newEntry)
+            newHighscore = True
+
+        with open('highscores.json', 'w') as score_file:
+            score_file.write(json.dumps(scores))
+
+        displayString = 'Your time was: ' + str(time)
+        if newHighscore:
+            displayString += '\nNew Highscore! Wewt!'
+        
+        i = 1
+        displayString += '\n\nHighscores:\n'
+        for sc in scores['highscores']:
+            displayString += '{}. {} ({})\n'.format(i, sc["score"], sc["date"])
+            i += 1
+            
+        wnBox = Qt.QMessageBox(Qt.QMessageBox.NoIcon, 'You Win!', displayString, Qt.QMessageBox.Ok)
         wnBox.exec_()
         
     def paintEvent(self, e):

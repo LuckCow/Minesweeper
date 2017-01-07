@@ -62,7 +62,7 @@ class mainWindow(Qt.QMainWindow):
 
         #Restart icon and function
         ri = Qt.QPixmap()
-        ri.load(os.path.dirname(os.path.realpath(__file__)) + 'data/restart.png', 'PNG') 
+        ri.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data', 'restart.png'), 'PNG')
         restart = Qt.QAction(Qt.QIcon(ri), 'New Game', self)
         restart.setShortcut('Ctrl+N')
         restart.triggered.connect(self.b.resetGame)
@@ -229,22 +229,22 @@ class boardWidget(Qt.QWidget):
         '''
         Loads up picture files, which are stored in the 'data/' directory
         '''
-        path = os.path.dirname(os.path.realpath(__file__)) + '/data/'
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data', '{}')
         self.tileImg = Qt.QImage()
-        self.tileImg.load(path+'tile.png', 'PNG')
+        self.tileImg.load(path.format('tile.png'), 'PNG')
         self.emptyTileImg = Qt.QImage()
-        self.emptyTileImg.load(path+'emptyTile.png', 'PNG')
+        self.emptyTileImg.load(path.format('emptyTile.png'), 'PNG')
         self.flagImg = Qt.QImage()
-        self.flagImg.load(path+'flag.png', 'PNG')
+        self.flagImg.load(path.format('flag.png'), 'PNG')
         self.wrongFlagImg = Qt.QImage()
-        self.wrongFlagImg.load(path+'wrongFlag.png', 'PNG')
+        self.wrongFlagImg.load(path.format('wrongFlag.png'), 'PNG')
         self.mineImg = Qt.QImage()
-        self.mineImg.load(path+'mine.png', 'PNG')
+        self.mineImg.load(path.format('mine.png'), 'PNG')
         self.explodedMineImg = Qt.QImage()
-        self.explodedMineImg.load(path+'explodedMine.png', 'PNG')
+        self.explodedMineImg.load(path.format('explodedMine.png'), 'PNG')
         self.numberImages = [Qt.QImage() for i in range(0,8)]
         for i in range(0,8):
-            self.numberImages[i].load(path + str(i+1) + '.png', 'PNG')
+            self.numberImages[i].load(path.format(str(i+1) + '.png'), 'PNG')
 
     def mousePressEvent(self, e):
         row = (e.y()) // self.sq

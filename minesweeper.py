@@ -5,11 +5,13 @@ Author: Nick Collins
 Date: 4/1/2016
 
 
-Python version 4.8.4
+Python version 3.4.3
 PyQt version 4.8.7 - Documentation: http://pyqt.sourceforge.net/Docs/PyQt4/classes.html
 
 Rules
-99 Mines are randomly placed, numbers are generated, which indicate 
+99 Mines are randomly placed, numbers are generated, which indicate the number of adacent mines
+The game is won when all of the numbers are revealed
+The game is lost when the player clicks on a mine
 
 Features:
 GUI
@@ -21,12 +23,12 @@ Time
 Mine flag count
 
 TODO:
-Implement highscores
 Possibly look into 'evil' minesweeper, which dynamically creates board,
 causing a loss for player whenever possible (would probably be impossible to win with current board size)
 Implement changing board size and mine number
 Implement logic board solving verification option
 Implement nice minesweeper, which dynamically creates board allowing for mistakes
+Impliment a review/analyze functality that tracks mouse movement and records areas that cause trouble for practice later
 
 Known Bugs:
 
@@ -37,8 +39,7 @@ Flag that are destroyed by 0 recursive clear are left in count and block square 
     --- Caused by flags remaining invisibly despite lack of cover
 """
 from PyQt4 import Qt
-import sys, random, time, json, datetime
-
+import sys, random, time, json, datetime, os
 
 
 class mainWindow(Qt.QMainWindow):
@@ -61,7 +62,7 @@ class mainWindow(Qt.QMainWindow):
 
         #Restart icon and function
         ri = Qt.QPixmap()
-        ri.load('data/restart.png', 'PNG') 
+        ri.load(os.path.dirname(os.path.realpath(__file__)) + 'data/restart.png', 'PNG') 
         restart = Qt.QAction(Qt.QIcon(ri), 'New Game', self)
         restart.setShortcut('Ctrl+N')
         restart.triggered.connect(self.b.resetGame)
@@ -228,8 +229,7 @@ class boardWidget(Qt.QWidget):
         '''
         Loads up picture files, which are stored in the 'data/' directory
         '''
-        #path = '/home/luckcow/coding/pythonProjects/minesweeper/data/' #must have this specific path from root
-        path = 'data/' #must run from minesweeper directory
+        path = os.path.dirname(os.path.realpath(__file__)) + '/data/'
         self.tileImg = Qt.QImage()
         self.tileImg.load(path+'tile.png', 'PNG')
         self.emptyTileImg = Qt.QImage()
@@ -254,7 +254,6 @@ class boardWidget(Qt.QWidget):
                 self.flagTile(row, col)
             
     def mouseReleaseEvent(self, e):
-        #print('Mouse Pressed:','Button:',e.button(),'x',e.x(),'y',e.y())
         row = (e.y()) // self.sq
         col = (e.x()) // self.sq
         if self.gameState == 0:
@@ -262,17 +261,20 @@ class boardWidget(Qt.QWidget):
                 if row in range(0, self.h) and col in range(0, self.w):
                     self.startGame(row, col)
         elif self.gameState == 1:
-            if e.button() == 1: #left click
-                self.tryTile(row, col)
-            elif e.button() == 4: #both buttons released simultaneously
-                self.cordTile(row, col)
+            if e.button() == 1 and row < self.h and col < self.w:
+                #left click -> open tiles directly and then coord
+                self.openTile(row, col)
+                self.cordTile(row, col) 
+                self.checkWin()
+                self.update()
 
     def startGame(self, row, col):
         self.gameState = 1
         self.generateBoard(row, col)
-        self.tryTile(row,col)
+        self.openTile(row,col)
         self.t0 = time.time()
         self.startGUItimer.activate(Qt.QAction.Trigger)
+        self.update()
 
     def cordTile(self, row, col):
         if self.cover[row][col]:
@@ -282,17 +284,10 @@ class boardWidget(Qt.QWidget):
                 for j in range(col - 1, col + 2):
                     if i >= 0 and j >= 0 and i < self.h and j < self.w:
                         self.openTile(i, j)
-        self.checkWin()
-        self.update()
-                                
                 
-    def tryTile(self, row, col):
-        self.openTile(row, col)
-        self.checkWin()
-        self.update()
 
     def openTile(self, row, col):
-        if self.flags[row][col]:
+        if self.flags[row][col] or not self.cover[row][col]:
             return #do not do anything if flag is clicked
         if self.board[row][col] != 'M':
             self.cover[row][col] = 0
@@ -303,6 +298,7 @@ class boardWidget(Qt.QWidget):
             self.explodedRow = row
             self.explodedCol = col
             self.endGUItimer.activate(Qt.QAction.Trigger)
+
         
     def flagTile(self, row, col):
         if self.cover[row][col] == 1:
@@ -356,9 +352,7 @@ class boardWidget(Qt.QWidget):
             
     def win(self):
         self.gameState = 3
-        print('GG-!!-You-Win-!!-GG')
         self.totalTime = time.time() - self.t0
-        print(self.totalTime)
         self.endGUItimer.activate(Qt.QAction.Trigger)
         self.update()
         self.showDialog()
@@ -366,6 +360,8 @@ class boardWidget(Qt.QWidget):
 
     def showDialog(self):
         time = round(self.totalTime, 2)
+        displayString = 'Your time was: ' + str(time)
+        
         with open('highscores.json') as score_file:
             scores = json.load(score_file)
 
@@ -374,27 +370,17 @@ class boardWidget(Qt.QWidget):
         for i, entry in enumerate(scores['highscores']):
             if self.totalTime < entry['score']:
                 scores['highscores'].insert(i, newEntry)
-                newHighscore = True
+                if len(scores['highscores']) > 5:
+                    scores['highscores'].pop()
+                displayString += '\nNew Highscore! Wewt!'
                 break
-
-        if len(scores['highscores']) > 5:
-            scores['highscores'].pop()
-        elif scores['highscores'][-1]['score'] < self.totalTime:
-            scores['highscores'].append(newEntry)
-            newHighscore = True
 
         with open('highscores.json', 'w') as score_file:
             score_file.write(json.dumps(scores))
-
-        displayString = 'Your time was: ' + str(time)
-        if newHighscore:
-            displayString += '\nNew Highscore! Wewt!'
         
-        i = 1
         displayString += '\n\nHighscores:\n'
-        for sc in scores['highscores']:
-            displayString += '{}. {} ({})\n'.format(i, sc["score"], sc["date"])
-            i += 1
+        for i, sc in enumerate(scores['highscores']):
+            displayString += '{}. {} ({})\n'.format(i+1, sc["score"], sc["date"])
             
         wnBox = Qt.QMessageBox(Qt.QMessageBox.NoIcon, 'You Win!', displayString, Qt.QMessageBox.Ok)
         wnBox.exec_()
@@ -406,9 +392,7 @@ class boardWidget(Qt.QWidget):
         qp.end()
 
     def drawBoard(self, qp):
-      
         s = self.sq
-
         # Draw Appropriate image in each grid square
         for i in range(0,self.h):
             for j in range(0, self.w):
@@ -417,12 +401,13 @@ class boardWidget(Qt.QWidget):
                     qp.drawImage(self.grid[i][j], self.tileImg)
                     if self.flags[i][j]:
                         qp.drawImage(self.grid[i][j], self.flagImg)
-                #Draw emptyTile and 
+                #Draw emptyTile and number
                 else:
                     qp.drawImage(self.grid[i][j], self.emptyTileImg)
                     if self.board[i][j] != '0':
                         qp.drawImage(self.grid[i][j], self.numberImages[int(self.board[i][j]) - 1])
-
+                        
+        #Show mine positions at loss
         if self.gameState == 2:
             for i in range(0,self.h):
                 for j in range(0, self.w):
@@ -442,6 +427,7 @@ class boardWidget(Qt.QWidget):
                 self.grid[j][i].setRect((i*s), (j*s), s, s)
             
     def setSquareSize(self):
+        #Set square size according to window size
         sqW = (self.size().width()-10) // self.w
         sqH = (self.size().height()-10) // self.h
         self.sq = min([sqW, sqH])
@@ -451,6 +437,7 @@ class boardWidget(Qt.QWidget):
         self.calculateNumbers()
 
     def placeMines(self, row, col):
+        #Randomly place mines on board
         minesPlaced = 0
         while (minesPlaced < self.mines):
             x = random.randrange(self.w)
@@ -461,7 +448,7 @@ class boardWidget(Qt.QWidget):
         
     def calculateNumbers(self):
         for i in range(0, self.h):
-            for j in range(0, self.w):#self.board[i]:
+            for j in range(0, self.w):
                 if self.board[i][j] != 'M':
                     self.board[i][j] = str(self.getAdjacentMines(j,i))
 

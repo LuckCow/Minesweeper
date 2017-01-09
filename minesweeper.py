@@ -38,7 +38,7 @@ Victory sometimes causes 3 successive pop-up windows -- caused by coording calli
 Flag that are destroyed by 0 recursive clear are left in count and block square from being corded on
     --- Caused by flags remaining invisibly despite lack of cover
 """
-from PyQt4 import Qt
+from PyQt5 import Qt
 import sys, random, time, json, datetime, os
 
 
@@ -355,27 +355,33 @@ class boardWidget(Qt.QWidget):
         self.totalTime = time.time() - self.t0
         self.endGUItimer.activate(Qt.QAction.Trigger)
         self.update()
-        self.showDialog()
+        self.updateHighscores()
 
 
-    def showDialog(self):
+    def updateHighscores(self):
         time = round(self.totalTime, 2)
         displayString = 'Your time was: ' + str(time)
         
-        with open('highscores.json') as score_file:
-            scores = json.load(score_file)
+        try:
+            with open('test.json', 'r') as score_file:
+                scores = json.load(score_file)
+        except FileNotFoundError:
+            scores = {'highscores':[]}
 
         newEntry = {"date":str(datetime.date.today()), "score":time}
-        newHighscore = False
         for i, entry in enumerate(scores['highscores']):
-            if self.totalTime < entry['score']:
+            if time < entry['score']:
                 scores['highscores'].insert(i, newEntry)
                 if len(scores['highscores']) > 5:
                     scores['highscores'].pop()
                 displayString += '\nNew Highscore! Wewt!'
                 break
+        else:
+            if len(scores['highscores']) < 5:
+                scores['highscores'].append(newEntry)
+                displayString += '\nNew Highscore! Wewt!'
 
-        with open('highscores.json', 'w') as score_file:
+        with open('test.json', 'w') as score_file:
             score_file.write(json.dumps(scores))
         
         displayString += '\n\nHighscores:\n'

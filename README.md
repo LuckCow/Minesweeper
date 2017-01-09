@@ -17,6 +17,12 @@ This game of minesweeper is implemented in Python. It should work for multiple p
 3. Download this repository
 4. Run the ```minesweeper.py``` script
 
+## Screenshots
+![game](/screenshots/game.png)
+![loss](/screenshots/loss.png) 
+![win](/screenshots/win.png) 
+
+
 ## Note about functionality
 
 In order to maximize my highscores, I added a functionality called 'cording'. When you click on a number and there are a corresponding number of adjacent mines flagged, the game will automatically open all other unrevealed tiles. I have this activate immediately after opening a tile as well. This may be problematic if you have some spaces misflagged, but it really helps with speed if you get used to it.

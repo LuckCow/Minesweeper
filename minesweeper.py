@@ -83,7 +83,7 @@ class mainWindow(Qt.QMainWindow):
         #self.toolbar.addAction(exitAction)
         
         self.resize(self.b.w * 50, self.b.h * 50 + 200)
-        self.setWindowTitle('PyneSweeper')
+        self.setWindowTitle('Python Minesweeper')
         self.show()
 
 class mineCounter(Qt.QWidget):
@@ -120,7 +120,7 @@ class mineCounter(Qt.QWidget):
         
     def drawText(self, qp, event):
         qp.setPen(Qt.QColor(0,0,0))
-        qp.setFont(Qt.QFont('System', 14))
+        qp.setFont(Qt.QFont('Decorative', 14))
         qp.drawText(event.rect(), Qt.Qt.AlignCenter, self.text) 
         
 class timer(Qt.QWidget):
@@ -144,6 +144,8 @@ class timer(Qt.QWidget):
     def resetTimer(self):
         self.timer.stop()
         self.seconds = 0
+        self.text = self.timeStr + '...'
+        self.update()
         
     def timerEvent(self, e):
         self.seconds += 1
@@ -363,7 +365,7 @@ class boardWidget(Qt.QWidget):
         displayString = 'Your time was: ' + str(time)
         
         try:
-            with open('test.json', 'r') as score_file:
+            with open('highscores.json', 'r') as score_file:
                 scores = json.load(score_file)
         except FileNotFoundError:
             scores = {'highscores':[]}
@@ -381,7 +383,7 @@ class boardWidget(Qt.QWidget):
                 scores['highscores'].append(newEntry)
                 displayString += '\nNew Highscore! Wewt!'
 
-        with open('test.json', 'w') as score_file:
+        with open('highscores.json', 'w') as score_file:
             score_file.write(json.dumps(scores))
         
         displayString += '\n\nHighscores:\n'

@@ -4,10 +4,6 @@ MineSweeper
 Author: Nick Collins
 Date: 4/1/2016
 
-
-Python version 3.4.3
-PyQt version 4.8.7 - Documentation: http://pyqt.sourceforge.net/Docs/PyQt4/classes.html
-
 Rules
 99 Mines are randomly placed, numbers are generated, which indicate the number of adacent mines
 The game is won when all of the numbers are revealed
@@ -16,6 +12,7 @@ The game is lost when the player clicks on a mine
 Features:
 GUI
 Full minesweeper functionality including cording
+Highscores
 
 Display:
 Board
@@ -31,12 +28,8 @@ Implement nice minesweeper, which dynamically creates board allowing for mistake
 Impliment a review/analyze functality that tracks mouse movement and records areas that cause trouble for practice later
 
 Known Bugs:
+None
 
-
-Fixed Bugas:
-Victory sometimes causes 3 successive pop-up windows -- caused by coording calling multiple check victories
-Flag that are destroyed by 0 recursive clear are left in count and block square from being corded on
-    --- Caused by flags remaining invisibly despite lack of cover
 """
 from PyQt5 import Qt
 import sys, random, time, json, datetime, os
@@ -87,6 +80,9 @@ class mainWindow(Qt.QMainWindow):
         self.show()
 
 class mineCounter(Qt.QWidget):
+    """
+    Qt widget that counts and displays the number of mines flagged
+    """
     def __init__(self, numMines):
         super(mineCounter, self).__init__()
         self.mines = 0
@@ -124,6 +120,9 @@ class mineCounter(Qt.QWidget):
         qp.drawText(event.rect(), Qt.Qt.AlignCenter, self.text) 
         
 class timer(Qt.QWidget):
+    """
+    Qt widget that times the game and displays the time
+    """
     def __init__(self):
         super(timer, self).__init__()
 
@@ -167,12 +166,9 @@ class timer(Qt.QWidget):
         
 class boardWidget(Qt.QWidget):
     """
-    Stores minesweeper board (mines and numbers)
-    Stores current cover
-    Display methods as QtWidget
+    Minesweeper board logic and display
     """
 
-    
     def __init__(self, guiTimer, guiMineCounter):
         """
         Initialzes variables:
@@ -314,9 +310,6 @@ class boardWidget(Qt.QWidget):
                 self.addGUImc.activate(Qt.QAction.Trigger)
             self.update()
             
-
-    #TODO: rewrite this function iteratively due to inefficient nature of python recursion(and low depth)
-    #Also, perhaps check for win iteratively aswell
     def openAdjacentTiles(self, row, col):
         #i, row
         #j, col
@@ -464,7 +457,7 @@ class boardWidget(Qt.QWidget):
         numMines = 0
         for j in range(y-1, y+2, 1):
             for i in range(x-1, x+2, 1):
-                if i >= 0 and j >=0 and j < self.h and i < self.w:
+                if i >= 0 and j >= 0 and j < self.h and i < self.w:
                     if self.board[j][i] == 'M':
                         numMines += 1
         return numMines

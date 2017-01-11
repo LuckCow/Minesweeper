@@ -28,7 +28,7 @@ Implement nice minesweeper, which dynamically creates board allowing for mistake
 Impliment a review/analyze functality that tracks mouse movement and records areas that cause trouble for practice later
 
 Known Bugs:
-None
+Segmentation Fault when closing window
 
 """
 from PyQt5 import Qt
@@ -356,9 +356,10 @@ class boardWidget(Qt.QWidget):
     def updateHighscores(self):
         time = round(self.totalTime, 2)
         displayString = 'Your time was: ' + str(time)
-        
+        path = os.path.dirname(os.path.realpath(__file__))
+
         try:
-            with open('highscores.json', 'r') as score_file:
+            with open(os.path.join(path, 'test.json'), 'r') as score_file:
                 scores = json.load(score_file)
         except FileNotFoundError:
             scores = {'highscores':[]}
@@ -376,7 +377,7 @@ class boardWidget(Qt.QWidget):
                 scores['highscores'].append(newEntry)
                 displayString += '\nNew Highscore! Wewt!'
 
-        with open('highscores.json', 'w') as score_file:
+        with open(os.path.join(path, 'test.json'), 'w') as score_file:
             score_file.write(json.dumps(scores))
         
         displayString += '\n\nHighscores:\n'

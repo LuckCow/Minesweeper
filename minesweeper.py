@@ -26,6 +26,7 @@ Implement changing board size and mine number
 Implement logic board solving verification option
 Implement nice minesweeper, which dynamically creates board allowing for mistakes
 Impliment a review/analyze functality that tracks mouse movement and records areas that cause trouble for practice later
+Finish autosolver
 
 Known Bugs:
 Segmentation Fault when closing window
